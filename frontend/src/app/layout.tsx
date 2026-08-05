@@ -1,8 +1,9 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { ToastProvider } from '@/context/ToastContext'
 
 export const metadata: Metadata = {
-  title: 'ERP & POS System',
+  title: 'Nexus ERP & POS Control Center',
   description: 'Enterprise Resource Planning & Point of Sale System',
 }
 
@@ -13,8 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased bg-slate-900 text-slate-100 min-h-screen">
-        {children}
+      <body className="font-sans antialiased bg-slate-950 text-slate-100 min-h-screen">
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )

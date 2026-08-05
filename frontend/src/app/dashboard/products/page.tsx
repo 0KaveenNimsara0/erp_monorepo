@@ -3,6 +3,21 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
+  Package,
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  Layers,
+  AlertTriangle,
+  DollarSign,
+  CheckCircle2,
+  X,
+  RefreshCw,
+  Filter
+} from 'lucide-react'
+import {
   Product,
   fetchProductsFromApi,
   createProductApi,
@@ -10,11 +25,19 @@ import {
   deleteProductApi
 } from '@/lib/products'
 
+import Sidebar from '@/components/Sidebar'
+import { useToast } from '@/context/ToastContext'
+
 export default function ProductManagement() {
+  const toast = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('All')
 
   // Form State
   const [sku, setSku] = useState('')
@@ -76,128 +99,185 @@ export default function ProductManagement() {
     if (editingProduct) {
       const ok = await updateProductApi(editingProduct.id, payload)
       if (ok) {
+        toast.success(`Product "${name}" updated successfully!`)
         setIsModalOpen(false)
         loadProducts()
       } else {
-        alert('Failed to update product in database.')
+        toast.error('Failed to update product in database.')
       }
     } else {
       const created = await createProductApi(payload)
       if (created) {
+        toast.success(`Product "${name}" created successfully!`)
         setIsModalOpen(false)
         loadProducts()
       } else {
-        alert('Failed to insert product into database. Make sure SKU is unique and backend MySQL is running.')
+        toast.error('Failed to insert product into database. Make sure SKU is unique.')
       }
     }
   }
 
-  const handleDeleteProduct = async (id: number) => {
-    if (confirm('Are you sure you want to delete this product from MySQL database?')) {
-      const ok = await deleteProductApi(id)
-      if (ok) {
-        loadProducts()
-      } else {
-        alert('Failed to delete product from database.')
-      }
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null)
+
+  const confirmDeleteProduct = async () => {
+    if (!deletingProductId) return
+    const ok = await deleteProductApi(deletingProductId)
+    if (ok) {
+      toast.info('Product removed from database.')
+      loadProducts()
+    } else {
+      toast.error('Failed to delete product from database.')
     }
+    setDeletingProductId(null)
   }
+
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))]
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter
+    return matchesSearch && matchesCategory
+  })
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top Navbar */}
-      <header className="h-16 border-b border-slate-800 bg-slate-900 px-6 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/dashboard" className="text-sm font-semibold text-slate-400 hover:text-white">
-            &larr; Dashboard
-          </Link>
-          <span className="text-slate-600">/</span>
-          <span className="text-sm font-bold text-white">Product Inventory Management (MySQL)</span>
-        </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-row relative overflow-x-hidden">
+      {/* Collapsible Sidebar */}
+      <Sidebar />
+
+      {/* Main Workspace Area */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Header */}
+        <header className="h-16 border-b border-slate-800/80 glass-panel px-6 flex items-center justify-between sticky top-0 z-20">
+          <div className="flex items-center space-x-2">
+            <Package className="w-5 h-5 text-indigo-400" />
+            <span className="font-black text-white tracking-tight">Product Inventory Management</span>
+          </div>
+
         <button
           onClick={openAddModal}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg transition"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center space-x-1.5"
         >
-          + Add New Product
+          <Plus className="w-4 h-4" />
+          <span>Add New Product</span>
         </button>
       </header>
 
-      {/* Main Table Content */}
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
-        <div className="flex justify-between items-center">
+      {/* Main Content */}
+      <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full space-y-6 relative z-10">
+        
+        {/* Title & Filter Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div>
-            <h1 className="text-2xl font-bold text-white">Dynamic Product Catalog</h1>
-            <p className="text-sm text-slate-400">Directly connected to CodeIgniter 4 MySQL API</p>
+            <h1 className="text-2xl font-black text-white">Product Catalog Studio</h1>
+            <p className="text-xs text-slate-400">Directly synchronized with CodeIgniter 4 MySQL API</p>
           </div>
-          <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700">
-            Total Database Records: {products.length}
-          </span>
+
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search name or SKU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-56"
+              />
+            </div>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>Category: {c}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={loadProducts}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 transition"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        <div className="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden">
+        {/* Data Table */}
+        <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800/80">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-800/60 text-slate-400 uppercase text-xs">
+              <thead className="bg-slate-900/90 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
                 <tr>
-                  <th className="px-4 py-3">SKU</th>
-                  <th className="px-4 py-3">Product Name</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Selling Price</th>
-                  <th className="px-4 py-3">Cost Price</th>
-                  <th className="px-4 py-3">Stock Qty</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-5 py-4">SKU</th>
+                  <th className="px-5 py-4">Product Details</th>
+                  <th className="px-5 py-4">Category</th>
+                  <th className="px-5 py-4">Retail Price</th>
+                  <th className="px-5 py-4">Cost Price</th>
+                  <th className="px-5 py-4">Stock Level</th>
+                  <th className="px-5 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
-                {products.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-800/40 transition">
-                    <td className="px-4 py-3 font-mono text-blue-400 text-xs">{p.sku}</td>
-                    <td className="px-4 py-3 font-medium text-white">{p.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 text-xs rounded bg-slate-800 text-slate-300 border border-slate-700">
-                        {p.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-bold text-emerald-400">${Number(p.price).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-slate-400">${Number(p.cost_price).toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`font-semibold px-2 py-0.5 rounded text-xs ${
-                          p.stock_quantity <= p.reorder_level
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'text-slate-200'
-                        }`}
-                      >
-                        {p.stock_quantity} units
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right space-x-2">
-                      <button
-                        onClick={() => openEditModal(p)}
-                        className="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(p.id)}
-                        className="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded transition"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {!isLoading && products.length === 0 && (
+              <tbody className="divide-y divide-slate-800/60 text-xs">
+                {filteredProducts.map((p) => {
+                  const isLow = p.stock_quantity <= p.reorder_level
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-900/40 transition">
+                      <td className="px-5 py-4 font-mono text-indigo-400 font-semibold">{p.sku}</td>
+                      <td className="px-5 py-4">
+                        <p className="font-bold text-white text-sm">{p.name}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 font-medium">
+                          {p.category}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-extrabold text-emerald-400">${Number(p.price).toFixed(2)}</td>
+                      <td className="px-5 py-4 text-slate-400">${Number(p.cost_price).toFixed(2)}</td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center space-x-1 ${
+                            isLow
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : 'bg-slate-900 text-slate-300 border border-slate-800'
+                          }`}
+                        >
+                          {isLow && <AlertTriangle className="w-3 h-3 text-amber-400" />}
+                          <span>{p.stock_quantity} units</span>
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => openEditModal(p)}
+                          className="px-2.5 py-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg transition inline-flex items-center space-x-1"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => setDeletingProductId(p.id)}
+                          className="px-2.5 py-1.5 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition inline-flex items-center space-x-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {!isLoading && filteredProducts.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-500">
-                      No products found in database. Click &quot;Add New Product&quot; above to create records.
+                    <td colSpan={7} className="text-center py-12 text-slate-500">
+                      No products found. Click &quot;Add New Product&quot; to create items.
                     </td>
                   </tr>
                 )}
                 {isLoading && (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-400">
-                      Loading items from MySQL database...
+                    <td colSpan={7} className="text-center py-12 text-slate-400">
+                      Syncing products with MySQL database...
                     </td>
                   </tr>
                 )}
@@ -207,13 +287,47 @@ export default function ProductManagement() {
         </div>
       </main>
 
-      {/* Add / Edit Product Modal */}
+      {/* Delete Confirmation Modal */}
+      {deletingProductId !== null && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-panel p-6 rounded-2xl max-w-sm w-full space-y-4 border border-slate-800 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/20">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white">Delete Product Record?</h3>
+              <p className="text-xs text-slate-400">Are you sure you want to permanently delete this product from the MySQL database?</p>
+            </div>
+            <div className="flex justify-center space-x-3 pt-2">
+              <button
+                onClick={() => setDeletingProductId(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl transition border border-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteProduct}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-rose-600/20"
+              >
+                Delete Record
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <h2 className="text-xl font-bold text-white">
-              {editingProduct ? 'Edit Product' : 'Add New Product to Database'}
-            </h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-panel p-6 rounded-2xl max-w-lg w-full space-y-4 border border-slate-800 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h2 className="text-lg font-bold text-white">
+                {editingProduct ? 'Edit Product Record' : 'Add New Product to Database'}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -224,7 +338,7 @@ export default function ProductManagement() {
                     required
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -232,7 +346,7 @@ export default function ProductManagement() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   >
                     <option value="Hardware">Hardware</option>
                     <option value="Supplies">Supplies</option>
@@ -251,7 +365,7 @@ export default function ProductManagement() {
                   placeholder="e.g. Wireless Barcode Scanner"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -265,7 +379,7 @@ export default function ProductManagement() {
                     placeholder="89.99"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -277,7 +391,7 @@ export default function ProductManagement() {
                     placeholder="50.00"
                     value={costPrice}
                     onChange={(e) => setCostPrice(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -291,7 +405,7 @@ export default function ProductManagement() {
                     placeholder="25"
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -302,7 +416,7 @@ export default function ProductManagement() {
                     placeholder="5"
                     value={reorderLevel}
                     onChange={(e) => setReorderLevel(e.target.value)}
-                    className="w-full mt-1 p-2 rounded bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -311,21 +425,22 @@ export default function ProductManagement() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition"
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition shadow-lg shadow-indigo-600/20"
                 >
-                  Save to MySQL
+                  Save Record
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
