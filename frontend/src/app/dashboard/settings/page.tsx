@@ -20,23 +20,15 @@ import Sidebar from '@/components/Sidebar'
 import { useToast } from '@/context/ToastContext'
 import { getDecodedToken, DecodedToken } from '@/lib/auth'
 import {
-  getCategories,
-  addCategory,
-  deleteCategory,
   getTaxSettings,
   saveTaxSettings,
-  TaxSettings,
-  Category
+  TaxSettings
 } from '@/lib/settings'
 
 export default function SettingsPage() {
   const toast = useToast()
   const [user, setUser] = useState<DecodedToken | null>(null)
   
-  // Category State
-  const [categories, setCategories] = useState<Category[]>([])
-  const [newCatName, setNewCatName] = useState('')
-
   // Tax State
   const [taxEnabled, setTaxEnabled] = useState(true)
   const [taxRate, setTaxRate] = useState<number>(8.0)
@@ -46,7 +38,6 @@ export default function SettingsPage() {
     setUser(decoded)
 
     const loadData = async () => {
-      setCategories(await getCategories())
       const tax = await getTaxSettings()
       setTaxEnabled(tax.enabled)
       setTaxRate(tax.rate)
@@ -54,21 +45,7 @@ export default function SettingsPage() {
     loadData()
   }, [])
 
-  const handleAddCategory = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newCatName.trim()) return
 
-    const updated = await addCategory(newCatName.trim())
-    setCategories(updated)
-    toast.success(`Category "${newCatName.trim()}" added successfully!`)
-    setNewCatName('')
-  }
-
-  const handleDeleteCategory = async (id: number, name: string) => {
-    const updated = await deleteCategory(id)
-    setCategories(updated)
-    toast.info(`Category "${name}" removed.`)
-  }
 
   const handleSaveTaxSettings = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,74 +83,19 @@ export default function SettingsPage() {
               <span>System & Operations Config</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
-              Category & Tax Settings
+              Settings
             </h1>
             <p className="text-xs text-slate-400">
-              Manage product catalog categories and configure automated POS tax rules
+              Manage system configurations and operational preferences for POS system.
             </p>
           </div>
         </div>
 
         {/* Settings Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="max-w-3xl mx-auto w-full">
           
-          {/* Section 1: Product Category Management (7 Cols) */}
-          <div className="lg:col-span-7 glass-panel p-6 rounded-2xl space-y-6 border border-slate-800">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <div className="flex items-center space-x-2">
-                <Tags className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-base font-bold text-white">Product Categories</h2>
-              </div>
-              <span className="text-xs font-mono text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-                {categories.length} Categories
-              </span>
-            </div>
-
-            {/* Add Category Form */}
-            <form onSubmit={handleAddCategory} className="flex gap-2">
-              <input
-                type="text"
-                required
-                placeholder="Enter new category name (e.g. Bakery, Hardware)..."
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center space-x-1.5 shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Category</span>
-              </button>
-            </form>
-
-            {/* Category Badges List */}
-            <div className="space-y-3 pt-2">
-              <label className="text-xs font-semibold text-slate-400">Active Dynamic Categories</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {Array.isArray(categories) && categories.map((cat) => (
-                  <div
-                    key={cat.id}
-                    className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between group hover:border-slate-700 transition"
-                  >
-                    <span className="text-xs font-bold text-slate-200">{cat.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                      className="p-1 text-slate-500 hover:text-rose-400 transition rounded-lg hover:bg-rose-500/10"
-                      title={`Remove ${cat.name} category`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Admin Tax Settings & ON/OFF Control (5 Cols) */}
-          <div className="lg:col-span-5 glass-panel p-6 rounded-2xl space-y-6 border border-slate-800">
+          {/* Admin Tax Settings & ON/OFF Control */}
+          <div className="glass-panel p-6 rounded-2xl space-y-6 border border-slate-800">
             <div className="flex justify-between items-center border-b border-slate-800 pb-4">
               <div className="flex items-center space-x-2">
                 <Percent className="w-5 h-5 text-emerald-400" />

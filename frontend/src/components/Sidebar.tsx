@@ -82,7 +82,7 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
       role: 'admin-manager'
     },
     {
-      label: 'Category & Tax Config',
+      label: 'Settings',
       href: '/dashboard/settings',
       icon: Settings,
       role: 'admin-manager'
