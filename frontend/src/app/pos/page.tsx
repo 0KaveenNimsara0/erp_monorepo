@@ -128,7 +128,7 @@ export default function POSTerminal() {
         total,
         date: new Date().toLocaleString()
       })
-      toast.success(`Sale Processed Successfully! Total Paid: $${total.toFixed(2)}`)
+      toast.success(`Sale Processed Successfully! Total Paid: Rs. ${total.toFixed(2)}`)
       setIsReceiptModalOpen(true)
       setCart([])
       loadProducts()
@@ -253,7 +253,7 @@ export default function POSTerminal() {
 
                       <div className="flex items-end justify-between pt-2 border-t border-slate-800/60">
                         <div>
-                          <span className="text-xs text-slate-400">$</span>
+                          <span className="text-xs text-slate-400">Rs. </span>
                           <span className="text-base font-extrabold text-white">{Number(p.price).toFixed(2)}</span>
                         </div>
                         <span
@@ -309,7 +309,7 @@ export default function POSTerminal() {
                 <div key={item.id} className="pt-2.5 first:pt-0 flex items-center justify-between gap-3">
                   <div className="flex-1 space-y-0.5">
                     <p className="text-xs font-bold text-white">{item.name}</p>
-                    <p className="text-[11px] text-slate-400">${item.price.toFixed(2)} each</p>
+                    <p className="text-[11px] text-slate-400">Rs. {item.price.toFixed(2)} each</p>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -329,7 +329,7 @@ export default function POSTerminal() {
                   </div>
 
                   <div className="text-right w-20">
-                    <p className="text-xs font-bold text-emerald-400">${(item.price * item.qty).toFixed(2)}</p>
+                    <p className="text-xs font-bold text-emerald-400">Rs. {(item.price * item.qty).toFixed(2)}</p>
                   </div>
 
                   <button
@@ -384,15 +384,15 @@ export default function POSTerminal() {
             <div className="space-y-1.5 pt-2 border-t border-slate-800 text-xs">
               <div className="flex justify-between text-slate-400">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Tax (8%)</span>
-                <span>${tax.toFixed(2)}</span>
+                <span>Rs. {tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-extrabold text-white pt-2 border-t border-slate-800">
                 <span>Total Amount</span>
-                <span className="text-emerald-400 text-base">${total.toFixed(2)}</span>
+                <span className="text-emerald-400 text-base">Rs. {total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -436,7 +436,7 @@ export default function POSTerminal() {
               </div>
               <div className="flex justify-between text-slate-400 pt-2 border-t border-slate-800 font-bold text-sm">
                 <span className="text-white">Amount Paid:</span>
-                <span className="text-emerald-400">${lastOrderDetails.total.toFixed(2)}</span>
+                <span className="text-emerald-400">Rs. {lastOrderDetails.total.toFixed(2)}</span>
               </div>
             </div>
 

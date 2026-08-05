@@ -192,7 +192,7 @@ export default function Home() {
               <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/60 flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-400 font-medium">Total Sales Revenue</p>
-                  <p className="text-2xl font-black text-emerald-400 mt-0.5">${totalRevenue.toFixed(2)}</p>
+                  <p className="text-2xl font-black text-emerald-400 mt-0.5">Rs. {totalRevenue.toFixed(2)}</p>
                 </div>
                 <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400">
                   <TrendingUp className="w-5 h-5" />

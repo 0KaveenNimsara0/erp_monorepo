@@ -234,8 +234,8 @@ export default function ProductManagement() {
                           {p.category}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-extrabold text-emerald-400">${Number(p.price).toFixed(2)}</td>
-                      <td className="px-5 py-4 text-slate-400">${Number(p.cost_price).toFixed(2)}</td>
+                      <td className="px-5 py-4 font-extrabold text-emerald-400">Rs. {Number(p.price).toFixed(2)}</td>
+                      <td className="px-5 py-4 text-slate-400">Rs. {Number(p.cost_price).toFixed(2)}</td>
                       <td className="px-5 py-4">
                         <span
                           className={`font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center space-x-1 ${
@@ -371,7 +371,7 @@ export default function ProductManagement() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400">Retail Price ($)</label>
+                  <label className="text-xs font-semibold text-slate-400">Retail Price (Rs.)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -383,7 +383,7 @@ export default function ProductManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400">Cost Price ($)</label>
+                  <label className="text-xs font-semibold text-slate-400">Cost Price (Rs.)</label>
                   <input
                     type="number"
                     step="0.01"
