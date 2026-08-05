@@ -28,6 +28,9 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('categories', 'Api\V1\Categories::index');
     $routes->delete('categories/(:segment)', 'Api\V1\Categories::delete/$1');
     
+    // Users (RBAC controlled inside controller)
+    $routes->resource('users', ['controller' => 'Api\V1\Users']);
+    
     $routes->get('settings/tax', 'Api\V1\Settings::getTax');
     $routes->put('settings/tax', 'Api\V1\Settings::updateTax');
 });

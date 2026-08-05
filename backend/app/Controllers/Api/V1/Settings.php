@@ -10,8 +10,19 @@ class Settings extends ResourceController
     protected $modelName = SettingModel::class;
     protected $format    = 'json';
 
+    // Helper to get current user from request
+    private function getCurrentUser()
+    {
+        return $this->request->user ?? null;
+    }
+
     public function getTax()
     {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role !== 'admin') {
+            return $this->failForbidden('Settings access is restricted to Administrators.');
+        }
+
         $enabledSetting = $this->model->where('setting_key', 'tax_enabled')->first();
         $rateSetting = $this->model->where('setting_key', 'tax_rate')->first();
 
@@ -26,6 +37,11 @@ class Settings extends ResourceController
 
     public function updateTax()
     {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role !== 'admin') {
+            return $this->failForbidden('Settings access is restricted to Administrators.');
+        }
+
         $json = $this->request->getJSON(true);
         $enabled = $json['enabled'] ?? null;
         $rate = $json['rate'] ?? null;

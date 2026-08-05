@@ -37,6 +37,11 @@ export default function SettingsPage() {
     const decoded = getDecodedToken()
     setUser(decoded)
 
+    if (decoded && decoded.role !== 'admin') {
+      window.location.href = '/dashboard'
+      return
+    }
+
     const loadData = async () => {
       const tax = await getTaxSettings()
       setTaxEnabled(tax.enabled)

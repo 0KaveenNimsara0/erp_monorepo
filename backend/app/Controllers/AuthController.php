@@ -63,6 +63,10 @@ class AuthController extends ResourceController
             }
         }
 
+        if (isset($user['status']) && $user['status'] === 'inactive') {
+            return $this->failUnauthorized('This account has been deactivated. Please contact an administrator.');
+        }
+
         // Generate JWT
         $key = getenv('jwt.secret');
         $expiration = getenv('jwt.expiration') ?: 86400;

@@ -15,7 +15,8 @@ import {
   Home,
   UserCheck,
   Sparkles,
-  Settings
+  Settings,
+  Users
 } from 'lucide-react'
 import { getDecodedToken, removeAuthToken, DecodedToken } from '@/lib/auth'
 
@@ -85,7 +86,7 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
       label: 'Settings',
       href: '/dashboard/settings',
       icon: Settings,
-      role: 'admin-manager'
+      role: 'admin'
     }
   ]
 
@@ -157,6 +158,10 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
               const Icon = item.icon
               const isActive = pathname === item.href
 
+              // Hide admin-only links
+              if (item.role === 'admin' && user && user.role !== 'admin') {
+                return null
+              }
               // Hide products menu for staff if desired
               if (item.role === 'admin-manager' && user && user.role === 'staff') {
                 return null
@@ -188,6 +193,25 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
                 </Link>
               )
             })}
+
+            {user?.role !== 'staff' && (
+              <Link
+                href="/dashboard/users"
+                title={isCollapsed ? "Team & Users" : undefined}
+                className={`flex items-center px-3.5 py-3 rounded-xl text-xs font-bold transition group ${
+                  isCollapsed ? 'justify-center' : 'justify-between'
+                } ${
+                  pathname === '/dashboard/users'
+                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/25 border border-indigo-500/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900/80 border border-transparent'
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <Users className={`w-4 h-4 shrink-0 transition ${pathname === '/dashboard/users' ? 'text-white' : 'group-hover:text-indigo-400'}`} />
+                  {!isCollapsed && <span>Team & Users</span>}
+                </div>
+              </Link>
+            )}
           </nav>
         </div>
 

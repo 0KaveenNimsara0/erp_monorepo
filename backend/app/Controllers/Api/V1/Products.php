@@ -10,6 +10,12 @@ class Products extends ResourceController
     protected $modelName = ProductModel::class;
     protected $format    = 'json';
 
+    // Helper to get current user from request
+    private function getCurrentUser()
+    {
+        return $this->request->user ?? null;
+    }
+
     /**
      * GET /api/v1/products
      * Fetch all products dynamically from MySQL database.
@@ -106,6 +112,11 @@ class Products extends ResourceController
      */
     public function delete($id = null)
     {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role !== 'admin') {
+            return $this->failForbidden('Only Administrators can delete products.');
+        }
+
         $product = $this->model->find($id);
         if (!$product) {
             return $this->failNotFound("Product with ID {$id} not found.");

@@ -29,6 +29,7 @@ import {
 import Sidebar from '@/components/Sidebar'
 import { useToast } from '@/context/ToastContext'
 import { getCategories, addCategory, deleteCategory, Category } from '@/lib/settings'
+import { getDecodedToken, DecodedToken } from '@/lib/auth'
 
 export default function ProductManagement() {
   const toast = useToast()
@@ -36,6 +37,7 @@ export default function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<DecodedToken | null>(null)
 
   // Category Management State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
@@ -68,6 +70,7 @@ export default function ProductManagement() {
   }
 
   useEffect(() => {
+    setUser(getDecodedToken())
     loadProducts()
   }, [])
 
@@ -286,13 +289,15 @@ export default function ProductManagement() {
                           <Edit className="w-3 h-3" />
                           <span>Edit</span>
                         </button>
-                        <button
-                          onClick={() => setDeletingProductId(p.id)}
-                          className="px-2.5 py-1.5 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition inline-flex items-center space-x-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>Delete</span>
-                        </button>
+                        {user?.role === 'admin' && (
+                          <button
+                            onClick={() => setDeletingProductId(p.id)}
+                            className="px-2.5 py-1.5 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition inline-flex items-center space-x-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )
