@@ -1,0 +1,62 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ERP System REST API",
+    "description": "CodeIgniter 4 REST API endpoints for POS, Inventory, Accounts, and User Management.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api/v1",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "User Authentication",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful, returns JWT token" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "List Inventory Products",
+        "responses": {
+          "200": { "description": "List of products" }
+        }
+      },
+      "post": {
+        "summary": "Create Product",
+        "responses": {
+          "201": { "description": "Product created successfully" }
+        }
+      }
+    },
+    "/sales": {
+      "post": {
+        "summary": "Record POS Sale Transaction",
+        "responses": {
+          "201": { "description": "Transaction recorded and receipt generated" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# Composer dependencies
+/vendor/
+composer.phar
+
+# Environment files
+.env
+
+# CodeIgniter 4 writable directories
+/writable/cache/*
+!/writable/cache/.gitkeep
+/writable/logs/*
+!/writable/logs/.gitkeep
+/writable/session/*
+!/writable/session/.gitkeep
+/writable/uploads/*
+!/writable/uploads/.gitkeep
+/writable/debugbar/*
+!/writable/debugbar/.gitkeep
+
+# Operating system files
+.DS_Store
+Thumbs.db
