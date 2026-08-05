@@ -1,3 +1,5 @@
+import { getAuthToken } from './auth';
+
 export interface Product {
   id: number
   sku: string
@@ -28,9 +30,20 @@ export interface Transaction {
 
 const API_BASE = '/api/backend'
 
+function getHeaders() {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+}
+
 export async function fetchProductsFromApi(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE}/products`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/products`, {
+      headers: getHeaders(),
+      cache: 'no-store'
+    })
     if (!res.ok) return []
     const json = await res.json()
     return Array.isArray(json.data) ? json.data : []
@@ -44,7 +57,7 @@ export async function createProductApi(product: Omit<Product, 'id'>): Promise<Pr
   try {
     const res = await fetch(`${API_BASE}/products`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(product)
     })
     if (!res.ok) return null
@@ -60,7 +73,7 @@ export async function updateProductApi(id: number, product: Partial<Product>): P
   try {
     const res = await fetch(`${API_BASE}/products/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(product)
     })
     return res.ok
@@ -73,7 +86,8 @@ export async function updateProductApi(id: number, product: Partial<Product>): P
 export async function deleteProductApi(id: number): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/products/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getHeaders()
     })
     return res.ok
   } catch (err) {
@@ -84,7 +98,10 @@ export async function deleteProductApi(id: number): Promise<boolean> {
 
 export async function fetchSalesFromApi(): Promise<Transaction[]> {
   try {
-    const res = await fetch(`${API_BASE}/sales`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/sales`, {
+      headers: getHeaders(),
+      cache: 'no-store'
+    })
     if (!res.ok) return []
     const json = await res.json()
     return Array.isArray(json.data) ? json.data : []
@@ -98,7 +115,7 @@ export async function recordSaleApi(sale: { items: SaleItem[]; payment_method: s
   try {
     const res = await fetch(`${API_BASE}/sales`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(sale)
     })
     return res.ok

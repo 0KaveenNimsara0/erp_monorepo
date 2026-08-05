@@ -3,6 +3,7 @@
 namespace App\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
+use CodeIgniter\I18n\Time;
 
 class ProductSeeder extends Seeder
 {
@@ -10,38 +11,71 @@ class ProductSeeder extends Seeder
     {
         $data = [
             [
-                'sku'            => 'SKU-001',
-                'name'           => 'Wireless POS Barcode Scanner',
-                'category'       => 'Hardware',
-                'price'          => 89.99,
-                'cost_price'     => 50.00,
-                'stock_quantity' => 24,
-                'reorder_level'  => 5,
-                'created_at'     => date('Y-m-d H:i:s'),
-                'updated_at'     => date('Y-m-d H:i:s'),
-            ],
-            [
-                'sku'            => 'SKU-002',
-                'name'           => 'Thermal Receipt Paper Roll (50pk)',
-                'category'       => 'Supplies',
-                'price'          => 29.99,
-                'cost_price'     => 12.50,
+                'sku' => 'TSHIRT-001',
+                'name' => 'Premium Cotton T-Shirt',
+                'category' => 'Apparel',
+                'price' => 25.00,
+                'cost_price' => 10.00,
                 'stock_quantity' => 150,
-                'reorder_level'  => 20,
-                'created_at'     => date('Y-m-d H:i:s'),
-                'updated_at'     => date('Y-m-d H:i:s'),
+                'reorder_level' => 20,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
             ],
             [
-                'sku'            => 'SKU-003',
-                'name'           => 'Heavy Duty Cash Drawer 24V',
-                'category'       => 'Hardware',
-                'price'          => 119.50,
-                'cost_price'     => 70.00,
-                'stock_quantity' => 8,
-                'reorder_level'  => 3,
-                'created_at'     => date('Y-m-d H:i:s'),
-                'updated_at'     => date('Y-m-d H:i:s'),
+                'sku' => 'MUG-002',
+                'name' => 'Ceramic Coffee Mug',
+                'category' => 'Home & Kitchen',
+                'price' => 12.50,
+                'cost_price' => 4.00,
+                'stock_quantity' => 45,
+                'reorder_level' => 50,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
             ],
+            [
+                'sku' => 'LAPTOP-PRO-15',
+                'name' => 'ProBook 15" Laptop',
+                'category' => 'Electronics',
+                'price' => 1299.99,
+                'cost_price' => 950.00,
+                'stock_quantity' => 12,
+                'reorder_level' => 5,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
+            [
+                'sku' => 'MOUSE-WL',
+                'name' => 'Wireless Ergonomic Mouse',
+                'category' => 'Electronics',
+                'price' => 45.00,
+                'cost_price' => 15.00,
+                'stock_quantity' => 85,
+                'reorder_level' => 15,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
+            [
+                'sku' => 'NOTEBOOK-A5',
+                'name' => 'A5 Leather Notebook',
+                'category' => 'Stationery',
+                'price' => 18.00,
+                'cost_price' => 6.50,
+                'stock_quantity' => 200,
+                'reorder_level' => 30,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
+            [
+                'sku' => 'HEADPHONE-NC',
+                'name' => 'Noise Cancelling Headphones',
+                'category' => 'Electronics',
+                'price' => 199.99,
+                'cost_price' => 110.00,
+                'stock_quantity' => 25,
+                'reorder_level' => 10,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ]
         ];
 
         // Using Query Builder
