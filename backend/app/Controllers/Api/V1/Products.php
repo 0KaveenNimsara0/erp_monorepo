@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1;
 
 use App\Models\ProductModel;
 use CodeIgniter\RESTful\ResourceController;
+use App\Libraries\AuditLogger;
 
 class Products extends ResourceController
 {
@@ -72,6 +73,8 @@ class Products extends ResourceController
             $insertId = $this->model->getInsertID();
             $created  = $this->model->find($insertId);
 
+            AuditLogger::log('CREATE', 'products', $insertId, null, $created, $this->request, $this->getCurrentUser()->id ?? null);
+
             return $this->respondCreated([
                 'status'   => 201,
                 'messages' => ['success' => 'Product created in database'],
@@ -97,6 +100,8 @@ class Products extends ResourceController
 
         if ($this->model->update($id, $json)) {
             $updated = $this->model->find($id);
+
+            AuditLogger::log('UPDATE', 'products', $id, $product, $updated, $this->request, $this->getCurrentUser()->id ?? null);
             return $this->respond([
                 'status'   => 200,
                 'messages' => ['success' => 'Product updated in database'],
@@ -123,6 +128,7 @@ class Products extends ResourceController
         }
 
         if ($this->model->delete($id)) {
+            AuditLogger::log('DELETE', 'products', $id, $product, null, $this->request, $user->id);
             return $this->respondDeleted([
                 'status'   => 200,
                 'messages' => ['success' => 'Product deleted from database'],

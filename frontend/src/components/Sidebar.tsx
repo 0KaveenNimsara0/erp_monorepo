@@ -16,7 +16,8 @@ import {
   UserCheck,
   Sparkles,
   Settings,
-  Users
+  Users,
+  Activity
 } from 'lucide-react'
 import { getDecodedToken, removeAuthToken, DecodedToken } from '@/lib/auth'
 
@@ -86,6 +87,12 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
       label: 'Settings',
       href: '/dashboard/settings',
       icon: Settings,
+      role: 'admin'
+    },
+    {
+      label: 'Audit Trail',
+      href: '/dashboard/audit',
+      icon: Activity,
       role: 'admin'
     }
   ]

@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\UserModel;
+use App\Libraries\AuditLogger;
 
 class Users extends ResourceController
 {
@@ -57,6 +58,9 @@ class Users extends ResourceController
         if ($this->model->insert($json)) {
             $id = $this->model->getInsertID();
             $created = $this->model->select('id, username, role, status, created_at')->find($id);
+            
+            AuditLogger::log('CREATE', 'users', $id, null, $created, $this->request, $currentUser->id);
+
             return $this->respondCreated([
                 'status'   => 201,
                 'messages' => ['success' => 'User created successfully'],
@@ -102,6 +106,9 @@ class Users extends ResourceController
 
         if ($this->model->update($id, $json)) {
             $updated = $this->model->select('id, username, role, status, created_at')->find($id);
+            
+            AuditLogger::log('UPDATE', 'users', $id, $targetUser, $updated, $this->request, $currentUser->id);
+
             return $this->respond([
                 'status'   => 200,
                 'messages' => ['success' => 'User updated successfully'],

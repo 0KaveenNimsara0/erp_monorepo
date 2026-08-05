@@ -4,11 +4,17 @@ namespace App\Controllers\Api\V1;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\CategoryModel;
+use App\Libraries\AuditLogger;
 
 class Categories extends ResourceController
 {
     protected $modelName = CategoryModel::class;
     protected $format    = 'json';
+
+    private function getCurrentUser()
+    {
+        return $this->request->user ?? null;
+    }
 
     public function index()
     {
@@ -32,7 +38,11 @@ class Categories extends ResourceController
             return $this->failResourceExists('Category already exists');
         }
 
-        $this->model->insert(['name' => $name]);
+        if ($this->model->insert(['name' => $name])) {
+            $id = $this->model->getInsertID();
+            $created = $this->model->find($id);
+            AuditLogger::log('CREATE', 'categories', $id, null, $created, $this->request, $this->getCurrentUser()->id ?? null);
+        }
         return $this->respondCreated(['status' => 201, 'message' => 'Category created', 'data' => $name]);
     }
 
@@ -47,7 +57,9 @@ class Categories extends ResourceController
             return $this->failNotFound('Category not found');
         }
 
-        $this->model->delete($id);
+        if ($this->model->delete($id)) {
+            AuditLogger::log('DELETE', 'categories', $id, $category, null, $this->request, $this->getCurrentUser()->id ?? null);
+        }
         return $this->respondDeleted(['status' => 200, 'message' => 'Category deleted']);
     }
 }

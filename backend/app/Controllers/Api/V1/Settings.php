@@ -4,6 +4,7 @@ namespace App\Controllers\Api\V1;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\SettingModel;
+use App\Libraries\AuditLogger;
 
 class Settings extends ResourceController
 {
@@ -63,6 +64,8 @@ class Settings extends ResourceController
                 $this->model->insert(['setting_key' => 'tax_rate', 'setting_value' => (string)$rate]);
             }
         }
+
+        AuditLogger::log('UPDATE', 'settings', null, null, ['tax_enabled' => $enabled, 'tax_rate' => $rate], $this->request, $user->id);
 
         return $this->respond(['status' => 200, 'message' => 'Tax settings updated']);
     }

@@ -33,4 +33,7 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     
     $routes->get('settings/tax', 'Api\V1\Settings::getTax');
     $routes->put('settings/tax', 'Api\V1\Settings::updateTax');
+    
+    // Audit Logs
+    $routes->get('audit-logs', 'Api\V1\AuditLogs::index');
 });

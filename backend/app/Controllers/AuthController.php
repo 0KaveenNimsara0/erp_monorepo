@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use CodeIgniter\RESTful\ResourceController;
 use Firebase\JWT\JWT;
+use App\Libraries\AuditLogger;
 
 class AuthController extends ResourceController
 {
@@ -33,10 +34,12 @@ class AuthController extends ResourceController
             $user = $userModel->where('username', $username)->first();
 
             if (!$user || !password_verify($password, $user['password_hash'])) {
+                AuditLogger::log('LOGIN_FAILED', 'auth', $user ? $user['id'] : null, ['reason' => 'Invalid username or password', 'username' => $username], null, $this->request, null);
                 return $this->failUnauthorized('Invalid username or password.');
             }
 
             if (!in_array($user['role'], ['admin', 'manager'])) {
+                 AuditLogger::log('LOGIN_FAILED', 'auth', $user['id'], ['reason' => 'Invalid role for password login', 'role' => $user['role']], null, $this->request, null);
                  return $this->failUnauthorized('Invalid role for password login.');
             }
 
@@ -59,11 +62,13 @@ class AuthController extends ResourceController
             }
 
             if (!$user) {
+                AuditLogger::log('LOGIN_FAILED', 'auth', null, ['reason' => 'Invalid PIN'], null, $this->request, null);
                 return $this->failUnauthorized('Invalid PIN.');
             }
         }
 
         if (isset($user['status']) && $user['status'] === 'inactive') {
+            AuditLogger::log('LOGIN_FAILED', 'auth', $user['id'], ['reason' => 'Account inactive'], null, $this->request, null);
             return $this->failUnauthorized('This account has been deactivated. Please contact an administrator.');
         }
 
@@ -79,6 +84,8 @@ class AuthController extends ResourceController
         ];
 
         $token = JWT::encode($payload, $key, 'HS256');
+
+        AuditLogger::log('LOGIN_SUCCESS', 'auth', $user['id'], null, ['role' => $user['role']], $this->request, $user['id']);
 
         return $this->respond([
             'message' => 'Login successful',
