@@ -4,7 +4,8 @@ export interface Product {
   id: number
   sku: string
   name: string
-  category: string
+  category_id: number
+  category?: string
   price: number
   cost_price: number
   stock_quantity: number

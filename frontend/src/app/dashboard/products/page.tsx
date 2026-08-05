@@ -27,6 +27,7 @@ import {
 
 import Sidebar from '@/components/Sidebar'
 import { useToast } from '@/context/ToastContext'
+import { getCategories, Category } from '@/lib/settings'
 
 export default function ProductManagement() {
   const toast = useToast()
@@ -37,21 +38,27 @@ export default function ProductManagement() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('All')
+  const [categoryFilter, setCategoryFilter] = useState('0')
 
   // Form State
   const [sku, setSku] = useState('')
   const [name, setName] = useState('')
-  const [category, setCategory] = useState('Hardware')
+  const [categoryId, setCategoryId] = useState<number>(0)
   const [price, setPrice] = useState('')
   const [costPrice, setCostPrice] = useState('')
   const [stockQuantity, setStockQuantity] = useState('')
   const [reorderLevel, setReorderLevel] = useState('10')
 
+  const [dynamicCategories, setDynamicCategories] = useState<Category[]>([])
+
   const loadProducts = async () => {
     setIsLoading(true)
     const data = await fetchProductsFromApi()
     setProducts(data)
+
+    const cats = await getCategories()
+    setDynamicCategories(cats)
+
     setIsLoading(false)
   }
 
@@ -63,7 +70,7 @@ export default function ProductManagement() {
     setEditingProduct(null)
     setSku(`SKU-${Math.floor(100 + Math.random() * 900)}`)
     setName('')
-    setCategory('Hardware')
+    setCategoryId(dynamicCategories.length > 0 ? dynamicCategories[0].id : 0)
     setPrice('')
     setCostPrice('')
     setStockQuantity('')
@@ -75,7 +82,7 @@ export default function ProductManagement() {
     setEditingProduct(p)
     setSku(p.sku)
     setName(p.name)
-    setCategory(p.category)
+    setCategoryId(p.category_id || (dynamicCategories.length > 0 ? dynamicCategories[0].id : 0))
     setPrice(p.price.toString())
     setCostPrice(p.cost_price.toString())
     setStockQuantity(p.stock_quantity.toString())
@@ -89,7 +96,7 @@ export default function ProductManagement() {
     const payload = {
       sku,
       name,
-      category,
+      category_id: categoryId,
       price: parseFloat(price) || 0,
       cost_price: parseFloat(costPrice) || 0,
       stock_quantity: parseInt(stockQuantity) || 0,
@@ -117,6 +124,8 @@ export default function ProductManagement() {
     }
   }
 
+
+
   const [deletingProductId, setDeletingProductId] = useState<number | null>(null)
 
   const confirmDeleteProduct = async () => {
@@ -130,14 +139,13 @@ export default function ProductManagement() {
     }
     setDeletingProductId(null)
   }
-
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))]
+  const categories = [{ id: 0, name: 'All' }, ...dynamicCategories]
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter
+    const matchesCategory = categoryFilter === '0' || String(p.category_id) === categoryFilter
     return matchesSearch && matchesCategory
   })
 
@@ -192,7 +200,7 @@ export default function ProductManagement() {
               className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
             >
               {categories.map((c) => (
-                <option key={c} value={c}>Category: {c}</option>
+                <option key={c.id} value={c.id.toString()}>Category: {c.name}</option>
               ))}
             </select>
 
@@ -231,7 +239,7 @@ export default function ProductManagement() {
                       </td>
                       <td className="px-5 py-4">
                         <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300 font-medium">
-                          {p.category}
+                          {p.category || 'Uncategorized'}
                         </span>
                       </td>
                       <td className="px-5 py-4 font-extrabold text-emerald-400">Rs. {Number(p.price).toFixed(2)}</td>
@@ -344,15 +352,15 @@ export default function ProductManagement() {
                 <div>
                   <label className="text-xs font-semibold text-slate-400">Category</label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(parseInt(e.target.value) || 0)}
                     className="w-full mt-1 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                   >
-                    <option value="Hardware">Hardware</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Apparel">Apparel</option>
-                    <option value="General">General</option>
+                    {dynamicCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

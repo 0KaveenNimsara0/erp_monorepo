@@ -28,6 +28,7 @@ import {
 
 import Sidebar from '@/components/Sidebar'
 import { useToast } from '@/context/ToastContext'
+import { getCategories, getTaxSettings, TaxSettings, Category } from '@/lib/settings'
 
 export default function POSTerminal() {
   const toast = useToast()
@@ -35,23 +36,34 @@ export default function POSTerminal() {
   const [cart, setCart] = useState<SaleItem[]>([])
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'online'>('cash')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('All')
+  const [selectedCategory, setSelectedCategory] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
   const [lastOrderDetails, setLastOrderDetails] = useState<{ invoice: string; total: number; date: string } | null>(null)
+  
+  // Dynamic Tax Settings from Admin Config
+  const [taxSettings, setTaxSettings] = useState<TaxSettings>({ enabled: true, rate: 8.0 })
 
-  const loadProducts = async () => {
+  const [dynamicCategories, setDynamicCategories] = useState<Category[]>([])
+
+  const loadData = async () => {
     setIsLoading(true)
-    const data = await fetchProductsFromApi()
+    const [data, cats, tax] = await Promise.all([
+      fetchProductsFromApi(),
+      getCategories(),
+      getTaxSettings()
+    ])
     setProducts(data)
+    setDynamicCategories(cats)
+    setTaxSettings(tax)
     setIsLoading(false)
   }
 
   useEffect(() => {
-    loadProducts()
+    loadData()
   }, [])
 
-  const categories = ['All', ...Array.from(new Set(products.map(p => p.category)))]
+  const categories = [{ id: 0, name: 'All' }, ...dynamicCategories]
 
   const addToCart = (product: Product) => {
     if (product.stock_quantity <= 0) {
@@ -106,7 +118,8 @@ export default function POSTerminal() {
   }
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0)
-  const tax = subtotal * 0.08
+  const taxRate = taxSettings.enabled ? taxSettings.rate / 100 : 0
+  const tax = subtotal * taxRate
   const total = subtotal + tax
 
   const handleCompleteSale = async () => {
@@ -131,7 +144,7 @@ export default function POSTerminal() {
       toast.success(`Sale Processed Successfully! Total Paid: Rs. ${total.toFixed(2)}`)
       setIsReceiptModalOpen(true)
       setCart([])
-      loadProducts()
+      loadData()
     } else {
       toast.error('Failed to process sale. Please verify backend server & database connection.')
     }
@@ -141,8 +154,8 @@ export default function POSTerminal() {
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory
+      (p.category || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === 0 || p.category_id === selectedCategory
     return matchesSearch && matchesCategory
   })
 
@@ -173,7 +186,7 @@ export default function POSTerminal() {
           </div>
 
           <button
-            onClick={loadProducts}
+            onClick={loadData}
             title="Reload Catalog"
             className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 transition"
           >
@@ -197,15 +210,15 @@ export default function POSTerminal() {
           <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none shrink-0">
             {categories.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition border whitespace-nowrap ${
-                  selectedCategory === cat
+                  selectedCategory === cat.id
                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-600/25'
                     : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800 hover:text-slate-200'
                 }`}
               >
-                {cat}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -242,7 +255,7 @@ export default function POSTerminal() {
                       <div className="space-y-1">
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-                            {p.category}
+                            {p.category || 'Uncategorized'}
                           </span>
                           <span className="text-[10px] font-mono text-slate-400">{p.sku}</span>
                         </div>
@@ -387,7 +400,7 @@ export default function POSTerminal() {
                 <span>Rs. {subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Tax (8%)</span>
+                <span>Tax ({taxSettings.enabled ? `${taxSettings.rate}%` : 'OFF'})</span>
                 <span>Rs. {tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm font-extrabold text-white pt-2 border-t border-slate-800">

@@ -9,76 +9,119 @@ class ProductSeeder extends Seeder
 {
     public function run()
     {
+        // Disable foreign key checks while truncating
+        $this->db->query('SET FOREIGN_KEY_CHECKS=0');
+        $this->db->table('products')->truncate();
+        $this->db->table('categories')->truncate();
+        $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+
+        $categories = [
+            ['name' => 'Bakery'],
+            ['name' => 'Hardware'],
+            ['name' => 'Apparel'],
+            ['name' => 'Groceries'],
+        ];
+
+        $this->db->table('categories')->insertBatch($categories);
+
+        // Get inserted categories mapped by name
+        $dbCats = $this->db->table('categories')->get()->getResultArray();
+        $catMap = [];
+        foreach ($dbCats as $c) {
+            $catMap[$c['name']] = $c['id'];
+        }
+
         $data = [
             [
-                'sku' => 'TSHIRT-001',
-                'name' => 'Premium Cotton T-Shirt',
-                'category' => 'Apparel',
-                'price' => 25.00,
-                'cost_price' => 10.00,
-                'stock_quantity' => 150,
-                'reorder_level' => 20,
+                'sku' => 'BAK-BRD-01',
+                'name' => 'Artisan Sourdough Bread',
+                'category_id' => $catMap['Bakery'],
+                'price' => 6.50,
+                'cost_price' => 2.00,
+                'stock_quantity' => 40,
+                'reorder_level' => 10,
                 'created_at' => Time::now(),
                 'updated_at' => Time::now(),
             ],
             [
-                'sku' => 'MUG-002',
-                'name' => 'Ceramic Coffee Mug',
-                'category' => 'Home & Kitchen',
-                'price' => 12.50,
-                'cost_price' => 4.00,
-                'stock_quantity' => 45,
-                'reorder_level' => 50,
-                'created_at' => Time::now(),
-                'updated_at' => Time::now(),
-            ],
-            [
-                'sku' => 'LAPTOP-PRO-15',
-                'name' => 'ProBook 15" Laptop',
-                'category' => 'Electronics',
-                'price' => 1299.99,
-                'cost_price' => 950.00,
-                'stock_quantity' => 12,
+                'sku' => 'BAK-CRS-02',
+                'name' => 'Butter Croissant (6-Pack)',
+                'category_id' => $catMap['Bakery'],
+                'price' => 8.99,
+                'cost_price' => 3.50,
+                'stock_quantity' => 25,
                 'reorder_level' => 5,
                 'created_at' => Time::now(),
                 'updated_at' => Time::now(),
             ],
             [
-                'sku' => 'MOUSE-WL',
-                'name' => 'Wireless Ergonomic Mouse',
-                'category' => 'Electronics',
-                'price' => 45.00,
-                'cost_price' => 15.00,
-                'stock_quantity' => 85,
-                'reorder_level' => 15,
+                'sku' => 'HDW-DRL-01',
+                'name' => 'Cordless Power Drill 20V',
+                'category_id' => $catMap['Hardware'],
+                'price' => 89.99,
+                'cost_price' => 45.00,
+                'stock_quantity' => 15,
+                'reorder_level' => 5,
                 'created_at' => Time::now(),
                 'updated_at' => Time::now(),
             ],
             [
-                'sku' => 'NOTEBOOK-A5',
-                'name' => 'A5 Leather Notebook',
-                'category' => 'Stationery',
-                'price' => 18.00,
-                'cost_price' => 6.50,
-                'stock_quantity' => 200,
+                'sku' => 'HDW-HMR-02',
+                'name' => 'Steel Claw Hammer',
+                'category_id' => $catMap['Hardware'],
+                'price' => 14.50,
+                'cost_price' => 6.00,
+                'stock_quantity' => 60,
+                'reorder_level' => 20,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
+            [
+                'sku' => 'CLO-TSH-01',
+                'name' => 'Organic Cotton T-Shirt (Black)',
+                'category_id' => $catMap['Apparel'],
+                'price' => 19.99,
+                'cost_price' => 7.50,
+                'stock_quantity' => 100,
                 'reorder_level' => 30,
                 'created_at' => Time::now(),
                 'updated_at' => Time::now(),
             ],
             [
-                'sku' => 'HEADPHONE-NC',
-                'name' => 'Noise Cancelling Headphones',
-                'category' => 'Electronics',
-                'price' => 199.99,
-                'cost_price' => 110.00,
-                'stock_quantity' => 25,
-                'reorder_level' => 10,
+                'sku' => 'CLO-JNS-02',
+                'name' => 'Classic Blue Denim Jeans',
+                'category_id' => $catMap['Apparel'],
+                'price' => 49.99,
+                'cost_price' => 22.00,
+                'stock_quantity' => 45,
+                'reorder_level' => 15,
                 'created_at' => Time::now(),
                 'updated_at' => Time::now(),
-            ]
+            ],
+            [
+                'sku' => 'GRO-CFE-01',
+                'name' => 'Premium Arabica Coffee Beans 1kg',
+                'category_id' => $catMap['Groceries'],
+                'price' => 24.50,
+                'cost_price' => 12.00,
+                'stock_quantity' => 80,
+                'reorder_level' => 25,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
+            [
+                'sku' => 'GRO-OIV-02',
+                'name' => 'Extra Virgin Olive Oil 500ml',
+                'category_id' => $catMap['Groceries'],
+                'price' => 12.99,
+                'cost_price' => 5.50,
+                'stock_quantity' => 55,
+                'reorder_level' => 20,
+                'created_at' => Time::now(),
+                'updated_at' => Time::now(),
+            ],
         ];
 
-        // Using Query Builder
         $this->db->table('products')->insertBatch($data);
     }
 }

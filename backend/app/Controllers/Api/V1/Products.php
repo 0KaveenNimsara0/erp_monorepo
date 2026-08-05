@@ -16,7 +16,10 @@ class Products extends ResourceController
      */
     public function index()
     {
-        $products = $this->model->findAll();
+        $products = $this->model
+            ->select('products.*, categories.name as category')
+            ->join('categories', 'categories.id = products.category_id', 'left')
+            ->findAll();
 
         return $this->respond([
             'status'   => 200,
@@ -31,7 +34,12 @@ class Products extends ResourceController
      */
     public function show($id = null)
     {
-        $product = $this->model->find($id);
+        $product = $this->model
+            ->select('products.*, categories.name as category')
+            ->join('categories', 'categories.id = products.category_id', 'left')
+            ->where('products.id', $id)
+            ->first();
+            
         if (!$product) {
             return $this->failNotFound("Product with ID {$id} not found.");
         }
@@ -79,6 +87,7 @@ class Products extends ResourceController
         }
 
         $json = $this->request->getJSON(true) ?? $this->request->getRawInput();
+        $json['id'] = $id;
 
         if ($this->model->update($id, $json)) {
             $updated = $this->model->find($id);

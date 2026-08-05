@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Home,
   UserCheck,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react'
 import { getDecodedToken, removeAuthToken, DecodedToken } from '@/lib/auth'
 
@@ -78,6 +79,12 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
       label: 'Inventory Products',
       href: '/dashboard/products',
       icon: Package,
+      role: 'admin-manager'
+    },
+    {
+      label: 'Category & Tax Config',
+      href: '/dashboard/settings',
+      icon: Settings,
       role: 'admin-manager'
     }
   ]
