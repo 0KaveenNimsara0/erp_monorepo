@@ -9,7 +9,7 @@ $routes->get('/', 'Home::index');
 
 // Auth Routes
 $routes->group('api/auth', static function ($routes) {
-    $routes->post('login', 'AuthController::login');
+    $routes->post('login', 'Api\V1\AuthController::login');
     $routes->options('login', static function() {}); // Handle CORS preflight
 });
 
@@ -21,6 +21,9 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // For specific RBAC per route, we can define them here instead of using resource() directly, 
     // but for now we apply base auth to all. We can add role checks inside controllers or separate groups.
     $routes->resource('products', ['controller' => 'Api\V1\Products']);
+    // Sales & Reporting
+    $routes->get('sales/summary', 'Api\V1\Sales::summary');
+    $routes->get('sales/report', 'Api\V1\Sales::report');
     $routes->resource('sales', ['controller' => 'Api\V1\Sales']);
     
     // Categories and Settings

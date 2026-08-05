@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Api\V1;
 
 use App\Models\UserModel;
 use CodeIgniter\RESTful\ResourceController;
@@ -39,8 +39,8 @@ class AuthController extends ResourceController
             }
 
             if (!in_array($user['role'], ['admin', 'manager'])) {
-                 AuditLogger::log('LOGIN_FAILED', 'auth', $user['id'], ['reason' => 'Invalid role for password login', 'role' => $user['role']], null, $this->request, null);
-                 return $this->failUnauthorized('Invalid role for password login.');
+                AuditLogger::log('LOGIN_FAILED', 'auth', $user['id'], ['reason' => 'Invalid role for password login', 'role' => $user['role']], null, $this->request, null);
+                return $this->failUnauthorized('Invalid role for password login.');
             }
 
         } else {

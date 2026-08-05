@@ -84,6 +84,12 @@ export default function Sidebar({ onToggleCollapse }: SidebarProps) {
       role: 'admin-manager'
     },
     {
+      label: 'Orders & Sales',
+      href: '/dashboard/orders',
+      icon: ShoppingBag,
+      role: 'all'
+    },
+    {
       label: 'Settings',
       href: '/dashboard/settings',
       icon: Settings,

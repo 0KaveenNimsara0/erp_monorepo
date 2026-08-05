@@ -114,14 +114,14 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-row relative overflow-x-hidden">
       <Sidebar />
-      <main className="flex-1 ml-20 transition-all duration-300">
-        <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300">
+        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full space-y-8 relative z-10">
           
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div className="flex-1 text-left">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
                   <Activity className="w-6 h-6" />
@@ -219,8 +219,8 @@ export default function AuditLogPage() {
               </table>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* Diff Viewer Modal */}
       {selectedLog && (
