@@ -59,10 +59,15 @@ class Products extends ResourceController
 
     /**
      * POST /api/v1/products
-     * Create new product directly in MySQL database
+     * Create new product directly in MySQL database (Admin & Manager only)
      */
     public function create()
     {
+        $user = $this->getCurrentUser();
+        if (!$user || !in_array($user->role, ['admin', 'manager'])) {
+            return $this->failForbidden('Only Managers and Administrators can add products.');
+        }
+
         $json = $this->request->getJSON(true) ?? $this->request->getPost();
 
         if (!$json) {
@@ -73,7 +78,7 @@ class Products extends ResourceController
             $insertId = $this->model->getInsertID();
             $created  = $this->model->find($insertId);
 
-            AuditLogger::log('CREATE', 'products', $insertId, null, $created, $this->request, $this->getCurrentUser()->id ?? null);
+            AuditLogger::log('CREATE', 'products', $insertId, null, $created, $this->request, $user->id);
 
             return $this->respondCreated([
                 'status'   => 201,
@@ -87,9 +92,15 @@ class Products extends ResourceController
 
     /**
      * PUT /api/v1/products/{id}
+     * Update product details (Admin & Manager only)
      */
     public function update($id = null)
     {
+        $user = $this->getCurrentUser();
+        if (!$user || !in_array($user->role, ['admin', 'manager'])) {
+            return $this->failForbidden('Only Managers and Administrators can update products.');
+        }
+
         $product = $this->model->find($id);
         if (!$product) {
             return $this->failNotFound("Product with ID {$id} not found.");
@@ -101,7 +112,7 @@ class Products extends ResourceController
         if ($this->model->update($id, $json)) {
             $updated = $this->model->find($id);
 
-            AuditLogger::log('UPDATE', 'products', $id, $product, $updated, $this->request, $this->getCurrentUser()->id ?? null);
+            AuditLogger::log('UPDATE', 'products', $id, $product, $updated, $this->request, $user->id);
             return $this->respond([
                 'status'   => 200,
                 'messages' => ['success' => 'Product updated in database'],

@@ -5,16 +5,21 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+$routes->get('/', static function() {
+    return response()->setJSON([
+        'status'  => 'online',
+        'system'  => 'Nexus ERP REST API',
+        'version' => '1.0.0'
+    ]);
+});
+
+// Global CORS preflight handler for OPTIONS requests
+$routes->options('(:any)', static function() {});
 
 // Auth Routes
 $routes->group('api/auth', static function ($routes) {
     $routes->post('login', 'Api\V1\AuthController::login');
-    $routes->options('login', static function() {}); // Handle CORS preflight
 });
-
-// Handle CORS preflight for all other API routes
-$routes->options('api/v1/(:any)', static function() {});
 
 // API V1 Routes
 $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {

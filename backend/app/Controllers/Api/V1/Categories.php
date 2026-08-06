@@ -25,6 +25,11 @@ class Categories extends ResourceController
 
     public function create()
     {
+        $user = $this->getCurrentUser();
+        if (!$user || !in_array($user->role, ['admin', 'manager'])) {
+            return $this->failForbidden('Only Managers and Administrators can create categories.');
+        }
+
         $json = $this->request->getJSON(true);
         $name = $json['name'] ?? null;
 
@@ -41,13 +46,18 @@ class Categories extends ResourceController
         if ($this->model->insert(['name' => $name])) {
             $id = $this->model->getInsertID();
             $created = $this->model->find($id);
-            AuditLogger::log('CREATE', 'categories', $id, null, $created, $this->request, $this->getCurrentUser()->id ?? null);
+            AuditLogger::log('CREATE', 'categories', $id, null, $created, $this->request, $user->id);
         }
         return $this->respondCreated(['status' => 201, 'message' => 'Category created', 'data' => $name]);
     }
 
     public function delete($id = null)
     {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role !== 'admin') {
+            return $this->failForbidden('Only Administrators can delete categories.');
+        }
+
         if (!$id) {
             return $this->failValidationErrors('Category ID is required');
         }
@@ -58,7 +68,7 @@ class Categories extends ResourceController
         }
 
         if ($this->model->delete($id)) {
-            AuditLogger::log('DELETE', 'categories', $id, $category, null, $this->request, $this->getCurrentUser()->id ?? null);
+            AuditLogger::log('DELETE', 'categories', $id, $category, null, $this->request, $user->id);
         }
         return $this->respondDeleted(['status' => 200, 'message' => 'Category deleted']);
     }

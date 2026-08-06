@@ -118,4 +118,24 @@ class Users extends ResourceController
 
         return $this->failValidationErrors($this->model->errors());
     }
+
+    public function delete($id = null)
+    {
+        $currentUser = $this->getCurrentUser();
+        if (!$currentUser || $currentUser->role !== 'admin') {
+            return $this->failForbidden('Only Administrators can delete users.');
+        }
+
+        $targetUser = $this->model->find($id);
+        if (!$targetUser) {
+            return $this->failNotFound('User not found.');
+        }
+
+        if ($this->model->delete($id)) {
+            AuditLogger::log('DELETE', 'users', $id, $targetUser, null, $this->request, $currentUser->id);
+            return $this->respondDeleted(['status' => 200, 'message' => 'User deleted successfully']);
+        }
+
+        return $this->fail('Failed to delete user.', 500);
+    }
 }
