@@ -21,7 +21,7 @@ import {
   AlertCircle,
   LogOut
 } from 'lucide-react'
-import { fetchProductsFromApi, fetchSalesFromApi, Product, Transaction } from '@/lib/products'
+import { fetchProductsFromApi, fetchSalesFromApi, Product, Transaction, checkHealthApi } from '@/lib/products'
 import { getDecodedToken, removeAuthToken, DecodedToken } from '@/lib/auth'
 
 export default function Home() {
@@ -46,13 +46,14 @@ export default function Home() {
 
     async function checkApiAndLoad() {
       try {
-        const [prods, salesData] = await Promise.all([
+        const [prods, salesData, isOnline] = await Promise.all([
           fetchProductsFromApi(),
-          fetchSalesFromApi()
+          fetchSalesFromApi(),
+          checkHealthApi()
         ])
         setProducts(prods)
         setSales(salesData)
-        setApiStatus('online')
+        setApiStatus(isOnline ? 'online' : 'offline')
       } catch (e) {
         setApiStatus('offline')
       }

@@ -12,6 +12,15 @@ export interface Product {
   reorder_level: number
 }
 
+export async function checkHealthApi(): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/health`, { cache: 'no-store' })
+    return res.ok
+  } catch (err) {
+    return false
+  }
+}
+
 export interface SaleItem {
   id: number
   name: string

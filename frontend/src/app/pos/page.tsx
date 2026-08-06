@@ -23,7 +23,8 @@ import {
   Product,
   SaleItem,
   fetchProductsFromApi,
-  recordSaleApi
+  recordSaleApi,
+  checkHealthApi
 } from '@/lib/products'
 
 import Sidebar from '@/components/Sidebar'
@@ -41,26 +42,33 @@ export default function POSTerminal() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
   const [lastOrderDetails, setLastOrderDetails] = useState<{ invoice: string; total: number; date: string } | null>(null)
   
-  // Dynamic Tax Settings from Admin Config
   const [taxSettings, setTaxSettings] = useState<TaxSettings>({ enabled: true, rate: 8.0 })
-
   const [dynamicCategories, setDynamicCategories] = useState<Category[]>([])
+  const [isOnline, setIsOnline] = useState(true)
 
   const loadData = async () => {
     setIsLoading(true)
-    const [data, cats, tax] = await Promise.all([
+    const [data, cats, tax, online] = await Promise.all([
       fetchProductsFromApi(),
       getCategories(),
-      getTaxSettings()
+      getTaxSettings(),
+      checkHealthApi()
     ])
     setProducts(data)
     setDynamicCategories(cats)
     setTaxSettings(tax)
+    setIsOnline(online)
     setIsLoading(false)
   }
 
   useEffect(() => {
     loadData()
+    // Optional: Poll health every 15 seconds
+    const interval = setInterval(async () => {
+      const online = await checkHealthApi()
+      setIsOnline(online)
+    }, 15000)
+    return () => clearInterval(interval)
   }, [])
 
   const categories = [{ id: 0, name: 'All' }, ...dynamicCategories]
@@ -193,9 +201,9 @@ export default function POSTerminal() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
 
-          <span className="text-xs px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-semibold flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Online</span>
+          <span className={`text-xs px-3 py-1.5 rounded-xl border font-semibold flex items-center space-x-1.5 ${isOnline ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
+            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'}`} />
+            <span>{isOnline ? 'Online' : 'Offline'}</span>
           </span>
         </div>
       </header>
