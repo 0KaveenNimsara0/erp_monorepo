@@ -86,3 +86,29 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(71, 85, 105, 1);
 }
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm; /* Standard POS printer width */
+    margin: 0;
+    padding: 10px;
+    background: white !important;
+    color: black !important;
+    font-family: monospace;
+    font-size: 12px;
+  }
+  /* Remove Tailwind dark mode backgrounds for printing */
+  html, body {
+    background: white !important;
+  }
+}

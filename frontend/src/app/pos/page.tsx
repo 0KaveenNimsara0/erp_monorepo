@@ -28,6 +28,7 @@ import {
 } from '@/lib/products'
 
 import Sidebar from '@/components/Sidebar'
+import ReceiptTemplate from '@/components/ReceiptTemplate'
 import { useToast } from '@/context/ToastContext'
 import { getCategories, getTaxSettings, TaxSettings, Category } from '@/lib/settings'
 
@@ -40,7 +41,7 @@ export default function POSTerminal() {
   const [selectedCategory, setSelectedCategory] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
-  const [lastOrderDetails, setLastOrderDetails] = useState<{ invoice: string; total: number; date: string } | null>(null)
+  const [lastOrderDetails, setLastOrderDetails] = useState<{ invoice: string; total: number; subtotal: number; tax: number; date: string; items: SaleItem[]; paymentMethod: string } | null>(null)
   
   const [taxSettings, setTaxSettings] = useState<TaxSettings>({ enabled: true, rate: 8.0 })
   const [dynamicCategories, setDynamicCategories] = useState<Category[]>([])
@@ -147,7 +148,11 @@ export default function POSTerminal() {
       setLastOrderDetails({
         invoice: generatedInvoice,
         total,
-        date: new Date().toLocaleString()
+        subtotal,
+        tax,
+        date: new Date().toLocaleString(),
+        items: [...cart],
+        paymentMethod
       })
       toast.success(`Sale Processed Successfully! Total Paid: Rs. ${total.toFixed(2)}`)
       setIsReceiptModalOpen(true)
@@ -461,13 +466,32 @@ export default function POSTerminal() {
               </div>
             </div>
 
-            <button
-              onClick={() => setIsReceiptModalOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/20"
-            >
-              Close & Next Order
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.print()}
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition flex items-center justify-center space-x-2"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Print Bill</span>
+              </button>
+              <button
+                onClick={() => setIsReceiptModalOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/20"
+              >
+                Next Order
+              </button>
+            </div>
           </div>
+
+          <ReceiptTemplate 
+            invoice={lastOrderDetails.invoice}
+            date={lastOrderDetails.date}
+            items={lastOrderDetails.items}
+            subtotal={lastOrderDetails.subtotal}
+            tax={lastOrderDetails.tax}
+            total={lastOrderDetails.total}
+            paymentMethod={lastOrderDetails.paymentMethod}
+          />
         </div>
       )}
       </div>
