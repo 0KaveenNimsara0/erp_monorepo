@@ -32,6 +32,7 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Sales & Reporting (specific routes must be declared before resource())
     $routes->get('sales/summary', 'Api\V1\SaleController::summary');
     $routes->get('sales/report',  'Api\V1\SaleController::report');
+    $routes->post('sales/(:num)/refund', 'Api\V1\SaleController::refund/$1');
     $routes->resource('sales', ['controller' => 'Api\V1\SaleController']);
 
     // Categories

@@ -41,6 +41,42 @@ class SaleRepository
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function findById(int $id): ?array
+    {
+        $sale = $this->saleModel
+            ->select('sales.*, users.username as cashier_name')
+            ->join('users', 'users.id = sales.user_id', 'left')
+            ->where('sales.id', $id)
+            ->first();
+
+        if ($sale) {
+            $sale['items'] = $this->saleItemModel->where('sale_id', $id)->findAll();
+        }
+
+        return $sale ?: null;
+    }
+
+    public function updateStatus(int $id, string $status): bool
+    {
+        return (bool)$this->saleModel->update($id, ['status' => $status]);
+    }
+
+    public function updateSaleRefund(int $id, string $status, float $refundedAmount): bool
+    {
+        return (bool)$this->saleModel->update($id, [
+            'status' => $status,
+            'refunded_amount' => $refundedAmount
+        ]);
+    }
+
+    public function updateSaleItemRefund(int $itemId, int $refundedQty): bool
+    {
+        return (bool)$this->saleItemModel->update($itemId, ['refunded_quantity' => $refundedQty]);
+    }
+
+    /**
      * @param array<string, mixed> $saleData
      * @return int The new sale ID
      */

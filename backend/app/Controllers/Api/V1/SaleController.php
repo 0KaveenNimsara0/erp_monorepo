@@ -60,4 +60,32 @@ class SaleController extends ResourceController
             return $this->failValidationErrors($e->getErrors());
         }
     }
+
+    /** GET /api/v1/sales/{id} */
+    public function show($id = null)
+    {
+        try {
+            $sale = $this->saleService->getById((int)$id, $this->request->user);
+            return $this->respond(['status' => 200, 'data' => $sale]);
+        } catch (ForbiddenException $e) {
+            return $this->failForbidden($e->getMessage());
+        } catch (\App\Exceptions\NotFoundException $e) {
+            return $this->failNotFound($e->getMessage());
+        }
+    }
+
+    /** POST /api/v1/sales/{id}/refund */
+    public function refund($id = null)
+    {
+        try {
+            $sale = $this->saleService->refund((int)$id, $this->request->user, $this->request);
+            return $this->respond(['status' => 200, 'message' => 'Order refunded successfully', 'data' => $sale]);
+        } catch (ForbiddenException $e) {
+            return $this->failForbidden($e->getMessage());
+        } catch (\App\Exceptions\NotFoundException $e) {
+            return $this->failNotFound($e->getMessage());
+        } catch (\Exception $e) {
+            return $this->fail($e->getMessage(), 400);
+        }
+    }
 }

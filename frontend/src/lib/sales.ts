@@ -8,6 +8,7 @@ export interface SaleItem {
   quantity: number;
   unit_price: string;
   subtotal: string;
+  refunded_quantity?: number;
 }
 
 export interface Sale {
@@ -18,6 +19,7 @@ export interface Sale {
   subtotal: string;
   tax: string;
   total_amount: string;
+  refunded_amount?: string;
   payment_method: string;
   status: string;
   created_at: string;
@@ -90,5 +92,36 @@ export async function fetchSalesReport(days: number | 'all' = 30): Promise<Repor
   } catch (err) {
     console.error('Failed to fetch sales report:', err);
     return [];
+  }
+}
+
+export async function fetchSaleDetails(id: number): Promise<Sale | null> {
+  try {
+    const res = await fetch(`${API_BASE}/sales/${id}`, {
+      headers: getHeaders(),
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data;
+  } catch (err) {
+    console.error('Failed to fetch sale details:', err);
+    return null;
+  }
+}
+
+export async function refundSaleApi(id: number, items?: { id: number, quantity: number }[], full_refund: boolean = false): Promise<{ success: boolean; message: string }> {
+  try {
+    const payload = items ? { items } : { full_refund };
+    const res = await fetch(`${API_BASE}/sales/${id}/refund`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    return { success: res.ok, message: json.message || (res.ok ? 'Refund successful' : 'Refund failed') };
+  } catch (err) {
+    console.error('Failed to refund sale:', err);
+    return { success: false, message: 'Network error occurred' };
   }
 }

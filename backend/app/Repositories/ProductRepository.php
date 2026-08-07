@@ -65,6 +65,15 @@ class ProductRepository
         }
     }
 
+    public function incrementStock(int $productId, int $qty): void
+    {
+        $product = $this->findById($productId);
+        if ($product) {
+            $product['stock_quantity'] = $product['stock_quantity'] + $qty;
+            $this->model->update($productId, $product);
+        }
+    }
+
     /** @return array<string, string> */
     public function getErrors(): array
     {
