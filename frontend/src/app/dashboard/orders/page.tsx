@@ -324,8 +324,13 @@ export default function OrdersPage() {
                             </td>
                           )}
                           <td className="px-5 py-4">
-                            <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold tracking-wide text-[10px] uppercase">
-                              {sale.status}
+                            <span className={`px-2.5 py-1 rounded-md border font-bold tracking-wide text-[10px] uppercase ${
+                              sale.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                              sale.status === 'partially_refunded' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                              sale.status === 'refunded' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                              'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                            }`}>
+                              {sale.status.replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-5 py-4 text-slate-400 uppercase font-bold tracking-wide text-[10px]">
@@ -399,8 +404,12 @@ export default function OrdersPage() {
                         </div>
                         <div className="space-y-1 text-sm">
                           <p className="text-slate-500 text-xs font-bold uppercase">Status</p>
-                          <p className={`font-bold uppercase ${selectedSale.status === 'completed' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {selectedSale.status}
+                          <p className={`font-bold uppercase ${
+                            selectedSale.status === 'completed' ? 'text-emerald-400' :
+                            selectedSale.status === 'partially_refunded' ? 'text-amber-400' :
+                            selectedSale.status === 'refunded' ? 'text-rose-400' : 'text-slate-400'
+                          }`}>
+                            {selectedSale.status.replace('_', ' ')}
                           </p>
                         </div>
                       </div>
