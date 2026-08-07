@@ -16,8 +16,10 @@ class SaleModel extends Model
         'subtotal',
         'tax',
         'total_amount',
+        'refunded_amount',
         'payment_method',
-        'status'
+        'status',
+        'refund_reason'
     ];
 
     protected $useTimestamps = true;

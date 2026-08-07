@@ -63,11 +63,12 @@ class SaleRepository
         return (bool)$this->saleModel->update($id, ['status' => $status]);
     }
 
-    public function updateSaleRefund(int $id, string $status, float $refundedAmount): bool
+    public function updateSaleRefund(int $id, string $status, float $refundedAmount, ?string $reason = null): bool
     {
         return (bool)$this->saleModel->update($id, [
             'status' => $status,
-            'refunded_amount' => $refundedAmount
+            'refunded_amount' => $refundedAmount,
+            'refund_reason' => $reason
         ]);
     }
 

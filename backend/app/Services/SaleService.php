@@ -125,8 +125,8 @@ class SaleService
      */
     public function refund(int $id, object $currentUser, RequestInterface $request): array
     {
-        if (!in_array($currentUser->role, ['admin', 'manager'], true)) {
-            throw new ForbiddenException('Only Managers and Administrators can refund sales.');
+        if (!in_array($currentUser->role, ['admin', 'manager', 'staff'], true)) {
+            throw new ForbiddenException('You do not have permission to refund sales.');
         }
 
         $sale = $this->saleRepo->findById($id);
@@ -151,6 +151,11 @@ class SaleService
             }
         }
         $payload = (array)($payload ?? []);
+
+        $reason = trim($payload['reason'] ?? '');
+        if (empty($reason)) {
+            throw new \Exception('A refund reason is required.');
+        }
 
         $isPartial = !empty($payload['items']);
         $isFullRefund = !empty($payload['full_refund']);
@@ -226,12 +231,18 @@ class SaleService
              $newTotalRefunded = (float)$sale['total_amount'];
         }
 
-        $this->saleRepo->updateSaleRefund($id, $newStatus, $newTotalRefunded);
+        $existingReason = $sale['refund_reason'] ?? '';
+        $dateStr = date('Y-m-d H:i');
+        $newReasonEntry = "[{$dateStr}] {$currentUser->uid}: {$reason}";
+        $updatedReason = $existingReason ? $existingReason . "\n" . $newReasonEntry : $newReasonEntry;
+
+        $this->saleRepo->updateSaleRefund($id, $newStatus, $newTotalRefunded, $updatedReason);
 
         $sale['status'] = $newStatus;
         $sale['refunded_amount'] = $newTotalRefunded;
+        $sale['refund_reason'] = $updatedReason;
         
-        AuditLogger::log('UPDATE', 'sales', $id, ['status' => $sale['status']], ['status' => $newStatus, 'refunded_amount' => $newTotalRefunded], $request, $currentUser->uid);
+        AuditLogger::log('UPDATE', 'sales', $id, ['status' => $sale['status']], ['status' => $newStatus, 'refunded_amount' => $newTotalRefunded, 'reason' => $reason], $request, $currentUser->uid);
 
         return $sale;
     }

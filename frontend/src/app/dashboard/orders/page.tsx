@@ -34,18 +34,24 @@ export default function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isRefunding, setIsRefunding] = useState(false)
   const [refundSelection, setRefundSelection] = useState<Record<number, number>>({})
+  const [refundReason, setRefundReason] = useState('')
   const toast = useToast()
 
   const handleRowClick = async (id: number) => {
     setIsModalOpen(true)
     setSelectedSale(null) // clear previous
     setRefundSelection({})
+    setRefundReason('')
     const details = await fetchSaleDetails(id)
     setSelectedSale(details)
   }
 
   const handleRefund = async () => {
     if (!selectedSale) return
+    if (!refundReason.trim()) {
+      toast.error('Refund reason is required.')
+      return
+    }
     setIsRefunding(true)
 
     const itemsToRefund = Object.entries(refundSelection)
@@ -55,7 +61,7 @@ export default function OrdersPage() {
     const isPartial = itemsToRefund.length > 0;
     const payload = isPartial ? itemsToRefund : undefined;
 
-    const { success, message } = await refundSaleApi(selectedSale.id, payload, !isPartial)
+    const { success, message } = await refundSaleApi(selectedSale.id, refundReason.trim(), payload, !isPartial)
     setIsRefunding(false)
     if (success) {
       toast.success(message)
@@ -407,7 +413,7 @@ export default function OrdersPage() {
                               <th className="px-4 py-3 font-semibold text-slate-300 text-right">Qty</th>
                               <th className="px-4 py-3 font-semibold text-slate-300 text-right">Unit Price</th>
                               <th className="px-4 py-3 font-semibold text-slate-300 text-right">Subtotal</th>
-                              {(selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user && (user.role === 'admin' || user.role === 'manager') && (
+                              {(selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user && (
                                 <th className="px-4 py-3 font-semibold text-slate-300 text-right">Refund Qty</th>
                               )}
                             </tr>
@@ -418,7 +424,7 @@ export default function OrdersPage() {
                               const qtyRefunded = item.refunded_quantity || 0;
                               const refundableQty = qtyBought - qtyRefunded;
                               const currentSelected = refundSelection[item.id] || 0;
-                              const canRefund = (selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user && (user.role === 'admin' || user.role === 'manager');
+                              const canRefund = (selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user;
 
                               return (
                                 <tr key={item.id} className={`bg-slate-900/20 ${qtyRefunded === qtyBought ? 'opacity-50' : ''}`}>
@@ -484,30 +490,49 @@ export default function OrdersPage() {
                   )}
                 </div>
 
-                <div className="p-6 border-t border-slate-800 flex justify-between items-center bg-slate-900/50">
-                  <div>
-                    {selectedSale && (selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user && (user.role === 'admin' || user.role === 'manager') && (
-                      <button 
-                        onClick={handleRefund}
-                        disabled={isRefunding}
-                        className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-sm font-bold transition flex items-center space-x-2"
-                      >
-                        {isRefunding ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Refunding...</span>
-                          </>
-                        ) : (
-                          <span>
-                            {Object.values(refundSelection).some(qty => qty > 0) ? 'Refund Selected Items' : 'Refund Remaining Order'}
-                          </span>
-                        )}
-                      </button>
+                <div className="p-6 border-t border-slate-800 flex justify-between items-end bg-slate-900/50">
+                  <div className="flex-1 mr-6">
+                    {selectedSale && selectedSale.refund_reason && (
+                      <div className="mb-4">
+                        <p className="text-xs font-bold text-slate-500 uppercase mb-1">Refund History</p>
+                        <div className="text-xs text-rose-300 bg-rose-500/10 p-3 rounded-lg border border-rose-500/20 whitespace-pre-wrap font-mono">
+                          {selectedSale.refund_reason}
+                        </div>
+                      </div>
+                    )}
+                    {selectedSale && (selectedSale.status === 'completed' || selectedSale.status === 'partially_refunded') && user && (
+                      <div className="space-y-3">
+                        <label className="block text-xs font-bold text-slate-400 uppercase">
+                          Refund Reason <span className="text-rose-500">*</span>
+                        </label>
+                        <textarea
+                          value={refundReason}
+                          onChange={(e) => setRefundReason(e.target.value)}
+                          placeholder="Why is this order being refunded?"
+                          className="w-full bg-slate-950 border border-slate-800 text-sm text-white rounded-xl p-3 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-600 resize-none h-20"
+                        />
+                        <button 
+                          onClick={handleRefund}
+                          disabled={isRefunding || !refundReason.trim()}
+                          className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-sm font-bold transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isRefunding ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin"></div>
+                              <span>Refunding...</span>
+                            </>
+                          ) : (
+                            <span>
+                              {Object.values(refundSelection).some(qty => qty > 0) ? 'Refund Selected Items' : 'Refund Remaining Order'}
+                            </span>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
                   <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition"
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold transition h-fit"
                   >
                     Close
                   </button>

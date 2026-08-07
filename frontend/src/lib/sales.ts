@@ -22,6 +22,7 @@ export interface Sale {
   refunded_amount?: string;
   payment_method: string;
   status: string;
+  refund_reason?: string | null;
   created_at: string;
   items?: SaleItem[];
 }
@@ -110,9 +111,9 @@ export async function fetchSaleDetails(id: number): Promise<Sale | null> {
   }
 }
 
-export async function refundSaleApi(id: number, items?: { id: number, quantity: number }[], full_refund: boolean = false): Promise<{ success: boolean; message: string }> {
+export async function refundSaleApi(id: number, reason: string, items?: { id: number, quantity: number }[], full_refund: boolean = false): Promise<{ success: boolean; message: string }> {
   try {
-    const payload = items ? { items } : { full_refund };
+    const payload = items ? { reason, items } : { reason, full_refund };
     const res = await fetch(`${API_BASE}/sales/${id}/refund`, {
       method: 'POST',
       headers: getHeaders(),
