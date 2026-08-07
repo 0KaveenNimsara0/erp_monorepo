@@ -60,8 +60,8 @@ class ProductRepository
     {
         $product = $this->findById($productId);
         if ($product) {
-            $newStock = max(0, $product['stock_quantity'] - $qty);
-            $this->model->update($productId, ['stock_quantity' => $newStock]);
+            $product['stock_quantity'] = max(0, $product['stock_quantity'] - $qty);
+            $this->model->update($productId, $product);
         }
     }
 

@@ -77,7 +77,15 @@ class ProductService
         }
 
         $dto = UpdateProductDTO::fromArray($rawData);
-        $this->productRepo->update($id, $dto->toArray());
+        $updateData = $dto->toArray();
+        
+        // Merge with existing data so CI4 validation doesn't fail on missing required fields
+        $fullUpdateData = array_merge($before, $updateData);
+
+        $success = $this->productRepo->update($id, $fullUpdateData);
+        if (!$success) {
+            throw new ValidationException($this->productRepo->getErrors());
+        }
 
         $after = $this->productRepo->findById($id);
         AuditLogger::log('UPDATE', 'products', $id, $before, $after, $request, $currentUser->uid);

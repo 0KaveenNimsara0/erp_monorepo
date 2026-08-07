@@ -43,8 +43,8 @@ class ProductController extends ResourceController
     public function create()
     {
         try {
-            $data    = $this->request->getJSON(true) ?? $this->request->getPost();
-            $product = $this->productService->create($data, $this->request->user, $this->request);
+            $input   = $this->request->getJSON(true) ?? $this->request->getVar() ?? [];
+            $product = $this->productService->create((array)$input, $this->request->user, $this->request);
             return $this->respondCreated(['status' => 201, 'data' => $product]);
         } catch (ForbiddenException $e) {
             return $this->failForbidden($e->getMessage());
@@ -57,8 +57,8 @@ class ProductController extends ResourceController
     public function update($id = null)
     {
         try {
-            $data    = $this->request->getJSON(true) ?? [];
-            $product = $this->productService->update((int)$id, $data, $this->request->user, $this->request);
+            $input   = $this->request->getJSON(true) ?? $this->request->getVar() ?? [];
+            $product = $this->productService->update((int)$id, (array)$input, $this->request->user, $this->request);
             return $this->respond(['status' => 200, 'data' => $product]);
         } catch (ForbiddenException $e) {
             return $this->failForbidden($e->getMessage());
