@@ -70,6 +70,8 @@ export default function AuditLogPage() {
         return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
       case 'DELETE':
         return 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+      case 'REFUND':
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
       case 'LOGIN_SUCCESS':
         return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
       case 'LOGIN_FAILED':

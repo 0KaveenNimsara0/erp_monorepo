@@ -202,7 +202,7 @@ export default function OrdersPage() {
               {report.map((item, idx) => {
                 const heightPct = (Number(item.revenue) / maxRev) * 100;
                 return (
-                  <div key={idx} className="flex-1 flex flex-col items-center group relative">
+                  <div key={idx} className="flex-1 h-full flex flex-col justify-end items-center group relative">
                     {/* Tooltip */}
                     <div className="opacity-0 group-hover:opacity-100 absolute -top-12 bg-slate-800 text-white text-[10px] py-1 px-2 rounded font-bold whitespace-nowrap pointer-events-none transition-opacity z-10 border border-slate-700">
                       {item.date}<br/>Rs. {Number(item.revenue).toFixed(2)}

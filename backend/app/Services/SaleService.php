@@ -91,7 +91,20 @@ class SaleService
             $this->productRepo->decrementStock($item->productId, $item->quantity);
         }
 
-        AuditLogger::log('CREATE', 'sales', $saleId, null, ['invoice' => $invoiceNumber, 'total' => $dto->totalAmount], $request, $dto->userId);
+        AuditLogger::log('CREATE', 'sales', $saleId, null, [
+            'invoice' => $invoiceNumber, 
+            'created_by' => $currentUser->uid,
+            'subtotal' => $dto->subtotal,
+            'tax' => $dto->tax,
+            'total' => $dto->totalAmount,
+            'items_count' => count($dto->items),
+            'items' => array_map(fn($i) => [
+                'product_id' => $i->productId, 
+                'name' => $i->productName, 
+                'qty' => $i->quantity, 
+                'unit_price' => $i->unitPrice
+            ], $dto->items)
+        ], $request, $currentUser->uid);
 
         return [
             'sale_id'        => $saleId,
@@ -168,6 +181,7 @@ class SaleService
 
         $totalRefundAmountThisTime = 0.0;
         $allRefunded = true;
+        $refundedItemsLog = [];
 
         $refundRequests = [];
         foreach ($itemsToRefund as $reqItem) {
@@ -204,7 +218,15 @@ class SaleService
                 $item['refunded_quantity'] = $newRefundedQty;
 
                 // Add to amount
-                $totalRefundAmountThisTime += ($qtyToRefundNow * $unitPrice);
+                $amountThisTime = $qtyToRefundNow * $unitPrice;
+                $totalRefundAmountThisTime += $amountThisTime;
+
+                $refundedItemsLog[] = [
+                    'item_id' => $itemId,
+                    'product_name' => $item['product_name'],
+                    'qty_refunded' => $qtyToRefundNow,
+                    'amount' => $amountThisTime
+                ];
             }
 
             if (($item['refunded_quantity'] ?? 0) < $qtyBought) {
@@ -242,7 +264,21 @@ class SaleService
         $sale['refunded_amount'] = $newTotalRefunded;
         $sale['refund_reason'] = $updatedReason;
         
-        AuditLogger::log('UPDATE', 'sales', $id, ['status' => $sale['status']], ['status' => $newStatus, 'refunded_amount' => $newTotalRefunded, 'reason' => $reason], $request, $currentUser->uid);
+        AuditLogger::log('REFUND', 'sales', $id, 
+            ['status' => $sale['status']], 
+            [
+                'invoice' => $sale['invoice_number'],
+                'refunded_by' => $currentUser->uid,
+                'status' => $newStatus, 
+                'refunded_amount' => $newTotalRefunded, 
+                'reason' => $reason,
+                'tax_refunded' => $taxRefundedThisTime,
+                'total_refund_value' => $totalRefundValueThisTime,
+                'refunded_items' => $refundedItemsLog
+            ], 
+            $request, 
+            $currentUser->uid
+        );
 
         return $sale;
     }
