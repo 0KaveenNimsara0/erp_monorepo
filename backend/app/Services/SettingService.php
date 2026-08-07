@@ -23,10 +23,6 @@ class SettingService
      */
     public function getTaxSettings(object $currentUser): array
     {
-        if ($currentUser->role !== 'admin') {
-            throw new ForbiddenException('Settings access is restricted to Administrators.');
-        }
-
         return [
             'enabled' => (bool)$this->settingRepo->getValue('tax_enabled'),
             'rate'    => (float)($this->settingRepo->getValue('tax_rate') ?? 8.0),
