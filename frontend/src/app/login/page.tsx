@@ -126,6 +126,10 @@ export default function LoginPage() {
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault()
         setPin((prev) => prev.slice(0, -1))
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        const btn = document.querySelector('button[type="submit"]') as HTMLButtonElement
+        if (btn) btn.click()
       }
     }
 

@@ -158,10 +158,89 @@ export default function POSTerminal() {
       setIsReceiptModalOpen(true)
       setCart([])
       loadData()
+      
+      // Auto print bill after short delay to allow render
+      setTimeout(() => {
+        window.print()
+      }, 500)
     } else {
       toast.error('Failed to process sale. Please verify backend server & database connection.')
     }
   }
+
+  // --- PIN VERIFICATION STATES & LOGIC ---
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false)
+  const [pin, setPin] = useState('')
+  const [isVerifyingPin, setIsVerifyingPin] = useState(false)
+
+  const handleCheckoutClick = () => {
+    setPin('')
+    setIsPinModalOpen(true)
+  }
+
+  const verifyPinAndComplete = async () => {
+    if (pin.length !== 6) {
+      toast.warning('Please enter a complete 6-digit staff PIN.')
+      return
+    }
+    
+    setIsVerifyingPin(true)
+    try {
+      const res = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loginType: 'pin', pin })
+      })
+      const data = await res.json()
+      
+      if (res.ok && data.token) {
+        // PIN verified! We can also store the new token if the cashier changed
+        import('@/lib/auth').then(({ setAuthToken }) => {
+          setAuthToken(data.token)
+        })
+        setIsPinModalOpen(false)
+        await handleCompleteSale()
+      } else {
+        toast.error('Invalid staff PIN. Please try again.')
+        setPin('')
+      }
+    } catch (err) {
+      toast.error('Failed to verify PIN. Check server connection.')
+    } finally {
+      setIsVerifyingPin(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isPinModalOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing elsewhere
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault()
+        setPin((prev) => (prev.length < 6 ? prev + e.key : prev))
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault()
+        setPin((prev) => prev.slice(0, -1))
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        // verifyPinAndComplete requires the current state, 
+        // to avoid dependency issues we can click the Authorize button
+        const btn = document.getElementById('authorize-pin-btn') as HTMLButtonElement
+        if (btn && !btn.disabled) btn.click()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setIsPinModalOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isPinModalOpen])
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -423,7 +502,7 @@ export default function POSTerminal() {
             </div>
 
             <button
-              onClick={handleCompleteSale}
+              onClick={handleCheckoutClick}
               disabled={cart.length === 0}
               className={`w-full py-3.5 rounded-xl font-extrabold text-xs tracking-wider uppercase transition shadow-lg flex items-center justify-center space-x-2 ${
                 cart.length === 0
@@ -437,6 +516,65 @@ export default function POSTerminal() {
           </div>
         </div>
       </div>
+
+      {/* PIN Verification Modal */}
+      {isPinModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-panel p-6 rounded-2xl max-w-sm w-full space-y-5 border border-slate-800 shadow-2xl text-center">
+            <h3 className="text-lg font-bold text-white">Cashier Authorization</h3>
+            <p className="text-xs text-slate-400">Enter your 6-digit PIN to complete the transaction.</p>
+            
+            <div className="text-xl font-mono tracking-[0.6em] text-center border-b-2 border-indigo-500/50 w-48 py-1.5 text-indigo-400 font-bold mx-auto">
+              {pin.padEnd(6, '•').substring(0, 6)}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => pin.length < 6 && setPin(p => p + num)}
+                  className="p-3 text-base font-bold bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-white transition active:scale-95"
+                >
+                  {num}
+                </button>
+              ))}
+              <div className="col-start-2">
+                <button
+                  onClick={() => pin.length < 6 && setPin(p => p + '0')}
+                  className="w-full p-3 text-base font-bold bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-white transition active:scale-95"
+                >
+                  0
+                </button>
+              </div>
+              <div className="col-start-3">
+                <button
+                  onClick={() => setPin(p => p.slice(0, -1))}
+                  className="w-full p-3 text-base font-bold bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 rounded-xl transition flex items-center justify-center active:scale-95"
+                >
+                  ⌫
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setIsPinModalOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition flex items-center justify-center"
+              >
+                Cancel
+              </button>
+              <button
+                id="authorize-pin-btn"
+                onClick={verifyPinAndComplete}
+                disabled={isVerifyingPin || pin.length !== 6}
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+              >
+                {isVerifyingPin ? 'Verifying...' : 'Authorize'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Receipt Modal */}
       {isReceiptModalOpen && lastOrderDetails && (
