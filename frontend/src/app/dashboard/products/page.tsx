@@ -255,7 +255,11 @@ export default function ProductManagement() {
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-xs">
                 {filteredProducts.map((p) => {
-                  const isLow = p.stock_quantity <= p.reorder_level
+                  const stock = Number(p.stock_quantity)
+                  const reorder = Number(p.reorder_level)
+                  const isCritical = stock <= reorder
+                  const isWarning = stock > reorder && stock <= reorder + 20
+                  
                   return (
                     <tr key={p.id} className="hover:bg-slate-900/40 transition">
                       <td className="px-5 py-4 font-mono text-indigo-400 font-semibold">{p.sku}</td>
@@ -272,13 +276,17 @@ export default function ProductManagement() {
                       <td className="px-5 py-4">
                         <span
                           className={`font-semibold px-2.5 py-1 rounded-full text-[10px] inline-flex items-center space-x-1 ${
-                            isLow
+                            isCritical
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : isWarning
                               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               : 'bg-slate-900 text-slate-300 border border-slate-800'
                           }`}
                         >
-                          {isLow && <AlertTriangle className="w-3 h-3 text-amber-400" />}
-                          <span>{p.stock_quantity} units</span>
+                          {(isCritical || isWarning) && (
+                            <AlertTriangle className={`w-3 h-3 ${isCritical ? 'text-rose-400' : 'text-amber-400'}`} />
+                          )}
+                          <span>{stock} units</span>
                         </span>
                       </td>
                       <td className="px-5 py-4 text-right space-x-2">
