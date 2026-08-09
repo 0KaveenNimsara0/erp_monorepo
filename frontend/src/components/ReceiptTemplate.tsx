@@ -20,7 +20,30 @@ export default function ReceiptTemplate({
   paymentMethod
 }: ReceiptTemplateProps) {
   return (
-    <div id="printable-receipt" className="hidden print:block">
+    <div id="printable-receipt" className="hidden print:block font-mono text-black">
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+          body * {
+            visibility: hidden;
+          }
+          #printable-receipt, #printable-receipt * {
+            visibility: visible;
+          }
+          #printable-receipt {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 80mm;
+            padding: 5mm;
+            margin: 0;
+          }
+        }
+      `}} />
       <div style={{ textAlign: 'center', marginBottom: '15px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 5px 0' }}>NEXUS ERP</h2>
         <p style={{ margin: '2px 0' }}>POS Terminal #01</p>
